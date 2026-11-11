@@ -82,106 +82,243 @@ export function buildMenuKnowledge(): string {
   return lines.join('\n');
 }
 
-export const SYSTEM_PROMPT = `You are the friendly, helpful AI Food Assistant for the FoodOrder self-pickup platform.
-Your role is to help customers explore restaurants, recommend available dishes based on their taste, budget, or dietary restrictions (allergens), and answer questions about prep times, prices, and pickup info.
 
-STRICT GROUNDING RULES:
-1. ONLY recommend dishes that are currently available ("Available: YES") and from restaurants that are "OPEN".
-2. If a user asks for a dish that is marked "SOLD OUT" (e.g. Truffle Pizza, Cannoli, Dumplings) or from a closed restaurant (e.g. Thai Garden), politely explain that it is currently unavailable or closed.
-3. ALWAYS state the exact price, allergens, and restaurant name as shown in the catalog. NEVER invent dishes, prices, or ingredients.
-4. Keep responses concise, warm, helpful, and formatted with bullet points for dish recommendations.
-5. Remind users that all orders on FoodOrder are for self-pickup at the restaurant.
+export const SYSTEM_PROMPT = `You are the intelligent, friendly AI Food Assistant for FoodOrder, a self-pickup food ordering platform.
+
+YOUR RESPONSIBILITIES:
+Help customers find restaurants, explore menus, compare dishes, understand prices, check availability, and choose food based on their preferences.
+
+IMPORTANT RESPONSE RULES:
+
+1. ALWAYS use the restaurant and menu catalog below as your only source of truth.
+2. Never invent restaurant names, menu items, ingredients, prices, allergens, ratings, or preparation times.
+3. Recommend dishes only when the restaurant is OPEN and the dish is AVAILABLE: YES.
+4. Never recommend SOLD OUT dishes as orderable. Explain their unavailable status when relevant.
+5. Never recommend dishes from CLOSED restaurants as currently orderable.
+6. Answer the exact question first. Do not provide an unrelated full menu when the customer asks a specific yes/no or price question.
+7. When recommending dishes, include their exact names, prices, restaurant names, and listed allergens.
+8. All orders are for self-pickup. Never claim that delivery is available.
+
+ORDER MINIMUM CALCULATIONS:
+9. Always check the restaurant's minimum order amount when a customer asks whether they can order a specific quantity or dish.
+10. Compare the total item price with the restaurant's minimum order amount.
+11. If the total is below the minimum, calculate and clearly state the exact additional amount needed.
+12. If the total meets or exceeds the minimum, clearly say that it meets the minimum.
+13. Do not invent taxes, service charges, discounts, or additional fees.
+
+DIETARY AND ALLERGEN RULES:
+14. Use the listed allergens to filter dishes when customers mention allergies.
+15. An empty allergen list means no allergens are listed in this catalog. It does NOT guarantee that a dish is allergen-free.
+16. Never assume a dish is vegan or vegetarian based only on its name or description.
+17. If vegetarian or vegan status cannot be confirmed from the catalog, explain that the ingredients need confirmation from the restaurant.
+18. Do not claim that a dish is gluten-free merely because gluten is not listed. Explain that the catalog does not certify gluten-free preparation.
+19. Never guarantee that food is safe for someone with a serious allergy. Mention possible cross-contact and advise checking with the restaurant.
+
+RECOMMENDATION RULES:
+20. Apply all customer requirements together. For example, if they request vegetarian food under $10, do not recommend dishes that fail either condition.
+21. When customers specify a budget, compare the individual dish price against that budget.
+22. When customers ask for the fastest restaurant, compare preparation times only among OPEN restaurants.
+23. When customers ask about a particular restaurant, answer about that restaurant rather than listing unrelated restaurants.
+24. If no dish matches their requirements, say so honestly and offer the closest suitable alternatives.
+
+RESPONSE STYLE:
+25. Be friendly, natural, concise, and helpful.
+26. Use bullet points for multiple dishes.
+27. Show prices with two decimal places.
+28. Clearly distinguish available dishes from sold-out dishes.
+29. If information is missing, say so rather than guessing.
+
+EXAMPLES OF GOOD ANSWERS:
+
+Customer: Can I order one Margherita Pizza from Pizza Palace?
+Assistant: One Margherita Pizza costs $12.99. Pizza Palace has a minimum order of $15.00, so you need another $2.01 in items to meet the minimum.
+
+Customer: Is Truffle Pizza available?
+Assistant: Truffle Pizza at Pizza Palace is currently sold out.
+
+Customer: Is Thai Garden open?
+Assistant: Thai Garden is currently closed, so its dishes are not available for pickup right now.
+
+Remember: FoodOrder is a self-pickup platform.
 
 ${buildMenuKnowledge()}`;
 
+
 // --- Grounded Mock / Demo Fallback --------------------------------------------
+
 export function generateMockResponse(userMessage: string): string {
   const query = userMessage.toLowerCase();
 
-  // Allergen checks
-  if (query.includes('gluten') || query.includes('celiac')) {
-    return (
-      `Here are great gluten-free options available for pickup:\n\n` +
-      `• **Caesar Salad** at Pizza Palace - $8.99 (contains dairy, fish)\n` +
-      `• **Guacamole with Chips** at Taco Fiesta - $6.99 (allergen-free)\n` +
-      `• **Lamb Biryani** at Curry House - $16.99 (allergen-free)\n` +
-      `• **French Fries** at Burger Joint - $3.99 (allergen-free)\n\n` +
-      `All orders are prepared for self-pickup.`
-    );
-  }
+  const money = (amount: number) => `$${amount.toFixed(2)}`;
 
-  if (query.includes('vegan') || query.includes('vegetarian')) {
-    return (
-      `Here are delicious vegetarian options currently available:\n\n` +
-      `• **Margherita Pizza** at Pizza Palace - $12.99 (contains gluten, dairy)\n` +
-      `• **Guacamole with Chips** at Taco Fiesta - $6.99 (vegan, allergen-free)\n` +
-      `• **Spring Rolls** at Dragon Wok - $6.99 (contains gluten, soy)\n` +
-      `• **Samosa** at Curry House - $5.99 (contains gluten)\n\n` +
-      `Ready for self-pickup at your selected restaurant!`
-    );
-  }
+  const openRestaurants = mockRestaurants.filter((restaurant) => restaurant.isOpen);
 
-  if (query.includes('pizza') || query.includes('italian')) {
-    return (
-      `**Pizza Palace** is open for self-pickup (prep time ~20 mins, min order $15.00):\n\n` +
-      `• **Margherita Pizza** ($12.99) - Classic tomato and fresh mozzarella\n` +
-      `• **Pepperoni Pizza** ($14.99) - Pepperoni and melted cheese\n` +
-      `• **Garlic Bread** ($5.99) - Toasted with garlic butter\n` +
-      `• **Tiramisu** ($6.99) - Coffee-soaked ladyfingers & mascarpone\n\n` +
-      `*(Note: Truffle Pizza is currently sold out).*`
-    );
-  }
-
-  if (query.includes('taco') || query.includes('mexican')) {
-    return (
-      `**Taco Fiesta** is open (rating 4.7, fastest prep time ~15 mins, min order $10.00):\n\n` +
-      `• **Beef Tacos** ($10.99) - Three soft tacos with cilantro and fresh onion\n` +
-      `• **Chicken Quesadilla** ($9.49) - Grilled chicken and seasoned cheese\n` +
-      `• **Guacamole** ($6.99) - Fresh avocado dip with crisp tortilla chips\n` +
-      `• **Nachos** ($7.49) - Tortilla chips with melted cheese & jalapenos\n` +
-      `• **Churros** ($4.99) - Crispy fried dough dusted with cinnamon sugar`
-    );
-  }
-
-  if (query.includes('fast') || query.includes('quick') || query.includes('time')) {
-    return (
-      `Here are the fastest self-pickup restaurants currently open:\n\n` +
-      `1. **Burger Joint** - ~10 mins prep (Min order: $8.00)\n` +
-      `2. **Taco Fiesta** - ~15 mins prep (Min order: $10.00)\n` +
-      `3. **Pizza Palace** - ~20 mins prep (Min order: $15.00)\n\n` +
-      `Order ahead and pick up fresh when ready!`
-    );
-  }
-
-  if (query.includes('burger') || query.includes('american')) {
-    return (
-      `**Burger Joint** is open for self-pickup (prep time only 10 mins!):\n\n` +
-      `• **Classic Cheeseburger** ($9.99) - Juicy beef patty with cheese and pickles\n` +
-      `• **Chicken Nuggets** ($6.49) - Crispy breaded chicken pieces\n` +
-      `• **French Fries** ($3.99) - Golden salted fries\n` +
-      `• **Onion Rings** ($4.99) - Battered crispy fried onions`
-    );
-  }
-
-  if (query.includes('curry') || query.includes('indian')) {
-    return (
-      `**Curry House** is open for self-pickup (prep time ~30 mins, min order $18.00):\n\n` +
-      `• **Butter Chicken** ($14.99) - Creamy tomato curry (contains dairy)\n` +
-      `• **Lamb Biryani** ($16.99) - Fragrant spiced basmati rice with tender lamb\n` +
-      `• **Samosa** ($5.99) - Crispy fried pastry with spiced potatoes\n` +
-      `• **Naan Bread** ($2.99) - Freshly baked traditional flatbread`
-    );
-  }
-
-  return (
-    `Welcome to FoodOrder! We have 5 open restaurants ready for self-pickup:\n\n` +
-    `• **Pizza Palace** (Italian, 4.5 ★) - Margherita & Pepperoni pizzas\n` +
-    `• **Dragon Wok** (Chinese, 4.2 ★) - Kung Pao Chicken, Sweet & Sour Pork\n` +
-    `• **Taco Fiesta** (Mexican, 4.7 ★) - Beef Tacos, Quesadillas & Guacamole\n` +
-    `• **Curry House** (Indian, 4.3 ★) - Butter Chicken & Lamb Biryani\n` +
-    `• **Burger Joint** (American, 4.0 ★) - Cheeseburgers & Fries\n\n` +
-    `Ask me for recommendations by cuisine, dietary preference, prep time, or budget!`
+  // Find a restaurant mentioned by the customer.
+  const selectedRestaurant = mockRestaurants.find((restaurant) =>
+    query.includes(restaurant.name.toLowerCase())
   );
+
+  // Check whether the customer asks about restaurant availability.
+  if (
+    selectedRestaurant &&
+    (query.includes('open') || query.includes('closed'))
+  ) {
+    return selectedRestaurant.isOpen
+      ? `${selectedRestaurant.name} is currently open for self-pickup. Estimated preparation time: ${selectedRestaurant.estimatedPrepTimeMinutes} minutes. Minimum order: ${money(selectedRestaurant.minimumOrderAmount)}.`
+      : `${selectedRestaurant.name} is currently closed and is not available for pickup.`;
+  }
+
+  // Find a specific menu item mentioned by the customer.
+  const allItems = mockRestaurants.flatMap((restaurant) =>
+    (mockMenus[restaurant.id] || []).map((item) => ({
+      ...item,
+      restaurant,
+    }))
+  );
+
+  const selectedItem = allItems.find((entry) =>
+    query.includes(entry.name.toLowerCase())
+  );
+
+  // Answer questions about a specific menu item.
+  if (selectedItem) {
+    const { restaurant, isAvailable, price, name, allergens } = selectedItem;
+
+    if (!restaurant.isOpen) {
+      return `${restaurant.name} is currently closed. ${name} is therefore unavailable for pickup right now.`;
+    }
+
+    if (!isAvailable) {
+      return `${name} at ${restaurant.name} is currently sold out.`;
+    }
+
+    const allergenText =
+      allergens.length > 0
+        ? allergens.join(', ')
+        : 'No allergens are listed in our catalog.';
+
+    const minimumDifference = Math.max(
+      0,
+      restaurant.minimumOrderAmount - price
+    );
+
+    if (
+      query.includes('order') ||
+      query.includes('buy') ||
+      query.includes('purchase') ||
+      query.includes('minimum')
+    ) {
+      if (minimumDifference > 0) {
+        return `One ${name} costs ${money(price)} at ${restaurant.name}. The minimum order is ${money(restaurant.minimumOrderAmount)}. You need another ${money(minimumDifference)} in items to meet the minimum order. Allergens listed: ${allergenText}. All orders are for self-pickup.`;
+      }
+
+      return `Yes! One ${name} costs ${money(price)} at ${restaurant.name}, which meets its minimum order of ${money(restaurant.minimumOrderAmount)}. Allergens listed: ${allergenText}. All orders are for self-pickup.`;
+    }
+
+    return `${name} is available at ${restaurant.name} for ${money(price)}. Allergens listed: ${allergenText}. Minimum order: ${money(restaurant.minimumOrderAmount)}.`;
+  }
+
+  // Find restaurants by cuisine.
+  const cuisineRestaurant = openRestaurants.find((restaurant) =>
+    query.includes(restaurant.cuisineType.toLowerCase())
+  );
+
+  const restaurantForMenu = selectedRestaurant || cuisineRestaurant;
+
+  if (restaurantForMenu) {
+    const items = (mockMenus[restaurantForMenu.id] || []).filter(
+      (item) => item.isAvailable
+    );
+
+    const menuText = items
+      .map(
+        (item) =>
+          `• **${item.name}** - ${money(item.price)} (Allergens: ${
+            item.allergens.length > 0
+              ? item.allergens.join(', ')
+              : 'None listed'
+          })`
+      )
+      .join('\n');
+
+    return `**${restaurantForMenu.name}** (${restaurantForMenu.cuisineType}) is open for self-pickup.\nPreparation time: ${restaurantForMenu.estimatedPrepTimeMinutes} minutes.\nMinimum order: ${money(restaurantForMenu.minimumOrderAmount)}.\n\nAvailable menu items:\n${menuText}`;
+  }
+
+  // Fastest open restaurants.
+  if (
+    query.includes('fast') ||
+    query.includes('quick') ||
+    query.includes('preparation time')
+  ) {
+    const fastest = [...openRestaurants].sort(
+      (a, b) => a.estimatedPrepTimeMinutes - b.estimatedPrepTimeMinutes
+    );
+
+    return `Here are the fastest open restaurants for self-pickup:\n\n${fastest
+      .map(
+        (restaurant) =>
+          `• **${restaurant.name}** - ${restaurant.estimatedPrepTimeMinutes} minutes (Minimum order: ${money(restaurant.minimumOrderAmount)})`
+      )
+      .join('\n')}`;
+  }
+
+  // Budget-based recommendations.
+  const budgetMatch = query.match(
+    /(?:under|below|within|budget(?: of)?|less than)\s*\$?\s*(\d+(?:\.\d{1,2})?)/
+  );
+
+  if (budgetMatch) {
+    const budget = Number(budgetMatch[1]);
+
+    const matches = allItems.filter(
+      ({ restaurant, price, isAvailable }) =>
+        restaurant.isOpen && isAvailable && price <= budget
+    );
+
+    if (matches.length === 0) {
+      return `Sorry, there are no currently available menu items priced at or below ${money(budget)} in our open restaurants.`;
+    }
+
+    return `Here are available items within your ${money(budget)} budget:\n\n${matches
+      .map(
+        ({ restaurant, name, price }) =>
+          `• **${name}** - ${money(price)} at ${restaurant.name}`
+      )
+      .join('\n')}`;
+  }
+
+  // Allergen-based filtering.
+  if (
+    query.includes('gluten') ||
+    query.includes('celiac') ||
+    query.includes('allerg')
+  ) {
+    const matches = allItems.filter(
+      ({ restaurant, allergens, isAvailable }) =>
+        restaurant.isOpen &&
+        isAvailable &&
+        !allergens.some((allergen) =>
+          query.includes(allergen.toLowerCase())
+        )
+    );
+
+    return `Here are available items that do not list the specified allergens in our catalog:\n\n${matches
+      .map(
+        ({ restaurant, name, price, allergens }) =>
+          `• **${name}** - ${money(price)} at ${restaurant.name} (Listed allergens: ${
+            allergens.length ? allergens.join(', ') : 'None listed'
+          })`
+      )
+      .join('\n')}\n\nPlease confirm ingredients and cross-contact risks with the restaurant. This is not a guarantee of allergen safety.`;
+  }
+
+  // General restaurant listing.
+  return `Welcome to FoodOrder! Here are our currently open restaurants:\n\n${openRestaurants
+    .map(
+      (restaurant) =>
+        `• **${restaurant.name}** - ${restaurant.cuisineType}, Rating: ${restaurant.rating}/5, Preparation: ${restaurant.estimatedPrepTimeMinutes} minutes, Minimum order: ${money(restaurant.minimumOrderAmount)}`
+    )
+    .join('\n')}\n\nYou can ask me about a restaurant, a specific dish, prices, preparation times, or available menu items. All orders are for self-pickup.`;
 }
 
 // --- Bedrock Converse API Client ----------------------------------------------
