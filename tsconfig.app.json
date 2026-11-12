@@ -25,5 +25,5 @@
     /* Vitest globals */
     "types": ["vitest/globals"]
   },
-  "include": ["src"]
+  "include": ["src", "server", "api"]
 }
