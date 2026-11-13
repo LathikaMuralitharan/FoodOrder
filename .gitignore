@@ -51,3 +51,6 @@ coverage
 *.id_rsa.pub
 aws-credentials.json
 credentials.json
+
+.vercel
+.env*
