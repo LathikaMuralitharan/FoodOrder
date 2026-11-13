@@ -1,5 +1,4 @@
-
-import { mockMenus } from '../../../../server/data/menusData';
+import { mockMenus } from '../../../../server/data/menusData.js';
 
 export default function handler(req: any, res: any) {
   if (req.method !== 'GET') {
