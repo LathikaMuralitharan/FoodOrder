@@ -1,6 +1,6 @@
 import { BedrockRuntimeClient, ConverseCommand } from '@aws-sdk/client-bedrock-runtime';
-import { mockRestaurants } from './data/restaurantsData';
-import { mockMenus } from './data/menusData';
+import { mockRestaurants } from './data/restaurantsData.js';
+import { mockMenus } from './data/menusData.js';
 
 export interface ChatMessage {
   role: 'user' | 'assistant';
