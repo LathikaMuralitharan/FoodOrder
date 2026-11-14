@@ -14,7 +14,7 @@ export const mockMenus: Record<string, MenuItemInfo[]> = {
     { id: 'm1', restaurantId: 'r1', name: 'Margherita Pizza', description: 'Classic tomato and mozzarella', price: 12.99, category: 'Pizzas', isAvailable: true, allergens: ['gluten', 'dairy'] },
     { id: 'm2', restaurantId: 'r1', name: 'Pepperoni Pizza', description: 'Pepperoni and cheese', price: 14.99, category: 'Pizzas', isAvailable: true, allergens: ['gluten', 'dairy'] },
     { id: 'm3', restaurantId: 'r1', name: 'Truffle Pizza', description: 'Truffle oil and mushrooms', price: 18.99, category: 'Pizzas', isAvailable: false, allergens: ['gluten', 'dairy'] },
-    { id: 'm4', restaurantId: 'r1', name: 'Caesar Salad', description: 'Romaine, croutons, parmesan', price: 8.99, category: 'Starters', isAvailable: true, allergens: ['gluten', 'dairy', 'fish'] },
+    { id: 'm4', restaurantId: 'r1', name: 'Caesar Salad', description: 'Romaine, croutons, parmesan', price: 8.99, category: 'Starters', isAvailable: true, allergens: ['dairy', 'fish'] },
     { id: 'm5', restaurantId: 'r1', name: 'Garlic Bread', description: 'Toasted with garlic butter', price: 5.99, category: 'Starters', isAvailable: true, allergens: ['gluten', 'dairy'] },
     { id: 'm6', restaurantId: 'r1', name: 'Tiramisu', description: 'Coffee-soaked ladyfingers and mascarpone', price: 6.99, category: 'Desserts', isAvailable: true, allergens: ['dairy', 'eggs'] },
     { id: 'm7', restaurantId: 'r1', name: 'Cannoli', description: 'Crispy shell with sweet filling', price: 5.49, category: 'Desserts', isAvailable: false, allergens: ['gluten', 'dairy'] },
