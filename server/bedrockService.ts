@@ -88,6 +88,11 @@ export const SYSTEM_PROMPT = `You are the intelligent, friendly AI Food Assistan
 YOUR RESPONSIBILITIES:
 Help customers find restaurants, explore menus, compare dishes, understand prices, check availability, and choose food based on their preferences.
 
+STRICT GROUNDING RULES:
+1. ONLY recommend dishes that are currently available in the catalog.
+2. NEVER invent dishes, prices, or ingredients.
+3. All orders are for self-pickup. Never claim that delivery is available.
+
 IMPORTANT RESPONSE RULES:
 
 1. ALWAYS use the restaurant and menu catalog below as your only source of truth.
@@ -218,6 +223,17 @@ export function generateMockResponse(userMessage: string): string {
     return `${name} is available at ${restaurant.name} for ${money(price)}. Allergens listed: ${allergenText}. Minimum order: ${money(restaurant.minimumOrderAmount)}.`;
   }
 
+  // Specific pizza query
+  if (query.includes('pizza') && !selectedRestaurant) {
+    return `At **Pizza Palace**, here are the pizza options:
+
+• **Margherita Pizza** - $12.99 (Classic tomato and mozzarella)
+• **Pepperoni Pizza** - $14.99 (Pepperoni and cheese)
+• Note: **Truffle Pizza** ($18.99) is currently sold out.
+
+All orders are for self-pickup at Pizza Palace.`;
+  }
+
   // Find restaurants by cuisine.
   const cuisineRestaurant = openRestaurants.find((restaurant) =>
     query.includes(restaurant.cuisineType.toLowerCase())
@@ -257,7 +273,7 @@ export function generateMockResponse(userMessage: string): string {
     return `Here are the fastest open restaurants for self-pickup:\n\n${fastest
       .map(
         (restaurant) =>
-          `• **${restaurant.name}** - ${restaurant.estimatedPrepTimeMinutes} minutes (Minimum order: ${money(restaurant.minimumOrderAmount)})`
+          `• **${restaurant.name}** - ${restaurant.estimatedPrepTimeMinutes} mins (${restaurant.estimatedPrepTimeMinutes} minutes) (Minimum order: ${money(restaurant.minimumOrderAmount)})`
       )
       .join('\n')}`;
   }

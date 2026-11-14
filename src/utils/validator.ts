@@ -44,7 +44,7 @@ export const validator = {
     const cleaned = cardNumber.replace(/\s/g, '');
     const cardRegex = /^\d{13,19}$/;
     if (!cleaned || !cardRegex.test(cleaned)) {
-      return { isValid: false, error: 'Card number must be 13–19 digits.' };
+      return { isValid: false, error: 'Card number must be 13-19 digits.' };
     }
     return { isValid: true, error: null };
   },
@@ -91,7 +91,7 @@ export const validator = {
   validateLoginForm(values: LoginFormValues): Record<keyof LoginFormValues, ValidationResult> {
     const emailResult: ValidationResult = !values.email
       ? { isValid: false, error: 'Email is required.' }
-      : { isValid: true, error: null };
+      : validator.validateEmail(values.email);
     const passwordResult: ValidationResult = !values.password
       ? { isValid: false, error: 'Password is required.' }
       : { isValid: true, error: null };

@@ -6,11 +6,12 @@ function createMockJwt(user: User): string {
   const header = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
   const payload = btoa(JSON.stringify({
     sub: user.id,
+    id: user.id,
     name: user.name,
     email: user.email,
     phone: user.phone,
     createdAt: user.createdAt,
-    exp: Math.floor(Date.now() / 1000) + 86400,
+    exp: Math.floor(Date.now() / 1000) + 86400 * 7,
     iat: Math.floor(Date.now() / 1000),
   }));
   const signature = btoa('mock-signature');
@@ -26,7 +27,8 @@ export const authHandlers = [
   http.post('/api/v1/auth/register', async ({ request }) => {
     const body = await request.json() as { name: string; email: string; password: string; phone: string };
 
-    const existing = mockUsers.find(u => u.email === body.email);
+    const normalizedEmail = (body.email || '').trim().toLowerCase();
+    const existing = mockUsers.find(u => u.email.toLowerCase() === normalizedEmail);
     if (existing) {
       return HttpResponse.json(
         { error: 'Email address is already registered.' },
@@ -36,9 +38,9 @@ export const authHandlers = [
 
     const newUser: MockUser = {
       id: `u${Date.now()}`,
-      name: body.name,
-      email: body.email,
-      phone: body.phone,
+      name: body.name.trim(),
+      email: normalizedEmail,
+      phone: body.phone.trim(),
       password: body.password,
       createdAt: new Date().toISOString(),
     };
@@ -54,8 +56,11 @@ export const authHandlers = [
 
   http.post('/api/v1/auth/login', async ({ request }) => {
     const body = await request.json() as { email: string; password: string };
+    const normalizedEmail = (body.email || '').trim().toLowerCase();
 
-    const user = mockUsers.find(u => u.email === body.email && u.password === body.password);
+    const user = mockUsers.find(
+      u => u.email.toLowerCase() === normalizedEmail && u.password === body.password
+    );
     if (!user) {
       return HttpResponse.json(
         { error: 'Email or password is incorrect.' },

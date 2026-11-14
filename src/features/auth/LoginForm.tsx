@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { Input } from '../../components/ui/Input';
 import { Button } from '../../components/ui/Button';
 import { validator } from '../../utils/validator';
@@ -80,6 +80,12 @@ export function LoginForm() {
       <Button type="submit" isLoading={isSubmitting} className="w-full">
         Login
       </Button>
+      <div className="mt-4 text-center text-sm text-gray-600">
+        Don&apos;t have an account?{' '}
+        <Link to="/register" className="font-semibold text-orange-600 hover:text-orange-500">
+          Sign up
+        </Link>
+      </div>
     </form>
   );
 }
